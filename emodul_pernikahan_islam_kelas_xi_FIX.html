@@ -1,0 +1,856 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); color: var(--color-text-primary); }
+
+  .emodul-wrap { max-width: 800px; margin: 0 auto; padding: 1rem; }
+
+  .nav-bar {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem;
+    padding: 0.75rem; background: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .nav-btn {
+    font-size: 11px; padding: 5px 10px; border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary); cursor: pointer;
+    color: var(--color-text-secondary); transition: all 0.15s;
+  }
+  .nav-btn.active, .nav-btn:hover {
+    background: #1D9E75; color: white; border-color: #1D9E75;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .cover-page {
+    min-height: 600px; border-radius: var(--border-radius-lg);
+    background: linear-gradient(160deg, #E1F5EE 0%, #9FE1CB 40%, #1D9E75 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 3rem 2rem; text-align: center; position: relative; overflow: hidden;
+  }
+  .cover-ornament {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.07;
+    background-image: repeating-linear-gradient(45deg, #085041 0, #085041 1px, transparent 0, transparent 50%);
+    background-size: 30px 30px;
+  }
+  .cover-badge {
+    background: rgba(255,255,255,0.25); color: #04342C;
+    font-size: 11px; font-weight: 500; padding: 4px 14px;
+    border-radius: 20px; border: 1px solid rgba(255,255,255,0.5);
+    margin-bottom: 1rem; letter-spacing: 1px; text-transform: uppercase;
+  }
+  .cover-title {
+    font-size: 36px; font-weight: 500; color: #04342C;
+    line-height: 1.2; margin-bottom: 0.5rem;
+  }
+  .cover-subtitle {
+    font-size: 16px; color: #085041; margin-bottom: 2rem;
+  }
+  .cover-divider {
+    width: 60px; height: 3px; background: #04342C;
+    border-radius: 2px; margin: 0 auto 2rem;
+  }
+  .cover-info {
+    background: rgba(255,255,255,0.5); border-radius: var(--border-radius-lg);
+    padding: 1.25rem 2rem; backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.6);
+  }
+  .cover-info p { font-size: 13px; color: #04342C; line-height: 2; }
+  .cover-logo {
+    font-size: 12px; color: #085041; margin-top: 2rem;
+    border-top: 1px solid rgba(4,52,44,0.3); padding-top: 1rem; width: 100%;
+  }
+
+  .section-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem;
+    padding-bottom: 1rem; border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .section-icon {
+    width: 40px; height: 40px; border-radius: var(--border-radius-md);
+    background: #E1F5EE; display: flex; align-items: center; justify-content: center;
+    color: #0F6E56; font-size: 20px; flex-shrink: 0;
+  }
+  .section-title { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .section-sub { font-size: 13px; color: var(--color-text-secondary); margin-top: 2px; }
+
+  .prose { font-size: 15px; line-height: 1.8; color: var(--color-text-primary); }
+  .prose p { margin-bottom: 1rem; }
+
+  .info-card {
+    background: var(--color-background-secondary); border-radius: var(--border-radius-lg);
+    border: 0.5px solid var(--color-border-tertiary); padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .info-card-title { font-size: 13px; font-weight: 500; color: #0F6E56; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .topic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 1.5rem 0; }
+  .topic-card {
+    background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg); padding: 1rem; cursor: pointer;
+    transition: all 0.15s; text-align: left;
+  }
+  .topic-card:hover { border-color: #1D9E75; transform: translateY(-2px); }
+  .topic-card.expanded { border-color: #1D9E75; background: #E1F5EE; }
+  .topic-num { font-size: 11px; color: #0F6E56; font-weight: 500; margin-bottom: 4px; }
+  .topic-title { font-size: 14px; font-weight: 500; }
+  .topic-body { font-size: 13px; color: var(--color-text-secondary); margin-top: 8px; line-height: 1.6; display: none; }
+  .topic-card.expanded .topic-body { display: block; color: #085041; }
+
+  .rukun-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 14px; }
+  .rukun-table th { background: #1D9E75; color: white; padding: 10px 14px; text-align: left; }
+  .rukun-table td { padding: 10px 14px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; }
+  .rukun-table tr:nth-child(even) td { background: var(--color-background-secondary); }
+
+  .ayat-box {
+    background: #E1F5EE; border-left: 4px solid #1D9E75;
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+    padding: 1.25rem; margin: 1.5rem 0;
+  }
+  .ayat-arabic { font-size: 22px; text-align: right; line-height: 1.8; color: #04342C; margin-bottom: 0.75rem; font-family: var(--font-serif); }
+  .ayat-latin { font-size: 13px; font-style: italic; color: #0F6E56; margin-bottom: 0.5rem; }
+  .ayat-terjemah { font-size: 13px; color: #085041; }
+  .ayat-source { font-size: 11px; color: #0F6E56; margin-top: 0.5rem; font-weight: 500; }
+
+  .step-flow { display: flex; flex-direction: column; gap: 0; margin: 1.5rem 0; }
+  .step-item { display: flex; gap: 0; }
+  .step-line { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 40px; }
+  .step-dot { width: 32px; height: 32px; border-radius: 50%; background: #1D9E75; color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+  .step-connector { width: 2px; flex: 1; background: #9FE1CB; min-height: 24px; }
+  .step-content { padding: 0 0 1.25rem 12px; flex: 1; }
+  .step-label { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+
+  .video-card {
+    border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg);
+    overflow: hidden; margin-bottom: 1rem; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .video-card:hover { border-color: #1D9E75; }
+  .video-thumb {
+    background: #085041; height: 140px; display: flex; align-items: center;
+    justify-content: center; color: white; font-size: 40px; position: relative;
+  }
+  .video-info { padding: 0.75rem 1rem; }
+  .video-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .video-src { font-size: 12px; color: var(--color-text-secondary); }
+
+  .quiz-wrap { max-width: 600px; }
+  .quiz-q { font-size: 15px; font-weight: 500; margin-bottom: 1rem; line-height: 1.5; }
+  .quiz-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.5rem; }
+  .quiz-opt {
+    padding: 10px 14px; border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary); cursor: pointer;
+    font-size: 14px; text-align: left; transition: all 0.15s;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: #1D9E75; background: #E1F5EE; }
+  .quiz-opt.correct { background: #EAF3DE; border-color: #639922; color: #27500A; }
+  .quiz-opt.wrong { background: #FCEBEB; border-color: #E24B4A; color: #501313; }
+  .quiz-opt:disabled { cursor: default; }
+  .quiz-feedback { font-size: 13px; margin-bottom: 1.5rem; padding: 10px 14px; border-radius: var(--border-radius-md); display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: #EAF3DE; color: #27500A; }
+  .quiz-feedback.no { background: #FCEBEB; color: #501313; }
+  .quiz-progress { display: flex; gap: 4px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .prog-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--color-border-tertiary); }
+  .prog-dot.done-ok { background: #639922; }
+  .prog-dot.done-no { background: #E24B4A; }
+  .prog-dot.current { background: #1D9E75; }
+
+  .quiz-nav { display: flex; gap: 8px; align-items: center; }
+  .score-card {
+    text-align: center; padding: 2rem; background: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg); display: none;
+  }
+  .score-num { font-size: 48px; font-weight: 500; color: #0F6E56; }
+  .score-label { font-size: 15px; color: var(--color-text-secondary); }
+
+  .profile-card {
+    display: flex; gap: 1rem; align-items: flex-start;
+    padding: 1.25rem; border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg); background: var(--color-background-primary);
+    margin-bottom: 1rem;
+  }
+  .profile-avatar {
+    width: 64px; height: 64px; border-radius: 50%; background: #1D9E75;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 500; color: white; flex-shrink: 0;
+  }
+  .profile-name { font-size: 16px; font-weight: 500; margin-bottom: 2px; }
+  .profile-nim { font-size: 12px; color: #0F6E56; margin-bottom: 8px; font-weight: 500; }
+  .profile-bio { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; }
+
+  .ref-item { padding: 0.75rem 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 14px; line-height: 1.6; }
+  .ref-item:last-child { border-bottom: none; }
+
+  .toc-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+    border-radius: var(--border-radius-md); cursor: pointer;
+    transition: background 0.15s; font-size: 14px;
+  }
+  .toc-item:hover { background: var(--color-background-secondary); }
+  .toc-num { width: 24px; height: 24px; border-radius: 50%; background: #E1F5EE; color: #0F6E56; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+
+  .petunjuk-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 1rem; }
+  .petunjuk-num { width: 28px; height: 28px; border-radius: 50%; background: #1D9E75; color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
+
+  .tp-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 0.75rem; }
+  .tp-check { width: 22px; height: 22px; border-radius: 50%; background: #E1F5EE; border: 2px solid #1D9E75; display: flex; align-items: center; justify-content: center; color: #0F6E56; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+
+  .page-footer { margin-top: 2rem; padding-top: 1rem; border-top: 0.5px solid var(--color-border-tertiary); display: flex; justify-content: space-between; align-items: center; }
+  .btn-nav { padding: 8px 16px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); cursor: pointer; font-size: 13px; color: var(--color-text-primary); display: flex; align-items: center; gap: 6px; }
+  .btn-nav:hover { background: #1D9E75; color: white; border-color: #1D9E75; }
+  .btn-nav.primary { background: #1D9E75; color: white; border-color: #1D9E75; }
+  .page-num { font-size: 12px; color: var(--color-text-secondary); }
+</style>
+
+<div class="emodul-wrap">
+  <h2 class="sr-only">E-Modul Interaktif Pernikahan dalam Islam - Kelas XI SMA</h2>
+
+  <div class="nav-bar">
+    <button class="nav-btn active" onclick="goTo(0)">Sampul</button>
+    <button class="nav-btn" onclick="goTo(1)">Prakata</button>
+    <button class="nav-btn" onclick="goTo(2)">Daftar Isi</button>
+    <button class="nav-btn" onclick="goTo(3)">Petunjuk</button>
+    <button class="nav-btn" onclick="goTo(4)">Tujuan</button>
+    <button class="nav-btn" onclick="goTo(5)">Pengertian</button>
+    <button class="nav-btn" onclick="goTo(6)">Dalil</button>
+    <button class="nav-btn" onclick="goTo(7)">Hukum</button>
+    <button class="nav-btn" onclick="goTo(8)">Rukun & Syarat</button>
+    <button class="nav-btn" onclick="goTo(9)">Prosedur</button>
+    <button class="nav-btn" onclick="goTo(10)">Mahram</button>
+    <button class="nav-btn" onclick="goTo(11)">Walimah</button>
+    <button class="nav-btn" onclick="goTo(12)">Video</button>
+    <button class="nav-btn" onclick="goTo(13)">Evaluasi</button>
+    <button class="nav-btn" onclick="goTo(14)">Rujukan</button>
+    <button class="nav-btn" onclick="goTo(15)">Profil</button>
+  </div>
+
+  <!-- HALAMAN 1: COVER -->
+  <div class="page active" id="p0">
+    <div class="cover-page">
+      <div class="cover-ornament"></div>
+      <div class="cover-badge">E-Modul Interaktif · Kelas XI SMA</div>
+      <div class="cover-title">Pernikahan<br>dalam Islam</div>
+      <div class="cover-subtitle">Pendidikan Agama Islam dan Budi Pekerti</div>
+      <div class="cover-divider"></div>
+      <div class="cover-info">
+        <p><strong>Mata Kuliah</strong> : Pengembangan Materi PAI SD, SMP, SMA/SMK</p>
+        <p><strong>Dosen Pengampu</strong> : Nuristiqamah Awaliyahputri B., M.Pd.</p>
+        <p><strong>Kelompok 11 &nbsp;·&nbsp; PAI 5 / Semester IV</strong></p>
+        <p>Najihah Suhailah &nbsp;|&nbsp; NIM 0301241013</p>
+        <p>Shofia Nur Rahmi &nbsp;|&nbsp; NIM 0301243155</p>
+      </div>
+      <div class="cover-logo">
+        Program Studi Pendidikan Agama Islam<br>
+        Fakultas Ilmu Tarbiyah dan Keguruan<br>
+        UIN Sumatera Utara Medan · Tahun 2026
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="page-num">Halaman 1</span>
+      <button class="btn-nav primary" onclick="goTo(1)"><i class="ti ti-arrow-right" aria-hidden="true"></i> Prakata</button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 2: PRAKATA -->
+  <div class="page" id="p1">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-writing" aria-hidden="true"></i></div>
+      <div><div class="section-title">Prakata</div><div class="section-sub">Dari para penyusun</div></div>
+    </div>
+    <div class="prose">
+      <p>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
+      <p>Alhamdulillâhirabbil'âlamîn, segala puji dan syukur senantiasa kami panjatkan ke hadirat Allah Swt. yang telah melimpahkan rahmat, taufik, dan hidayah-Nya sehingga kami dapat menyelesaikan E-Modul Interaktif bertema <em>Pernikahan dalam Islam</em> ini dengan baik. Shalawat serta salam semoga senantiasa tercurah kepada Nabi Muhammad Saw., para sahabat, dan umat Islam hingga akhir zaman.</p>
+      <p>Ucapan terima kasih yang sebesar-besarnya kami sampaikan kepada Ibu <strong>Nuristiqamah Awaliyahputri B., M.Pd.</strong> selaku dosen pengampu Mata Kuliah Pengembangan Materi PAI SD, SMP, SMA/SMK yang telah membimbing dan memberikan arahan penuh kepada kami. Terima kasih pula kepada seluruh rekan mahasiswa PAI 5 Semester IV atas semangat dan dukungannya.</p>
+      <p>E-Modul ini kami susun bukan sekadar memenuhi kewajiban akademik, melainkan sebagai upaya nyata untuk belajar menjadi pendidik yang kreatif, inovatif, dan melek teknologi. Kami percaya bahwa media pembelajaran yang menarik dan interaktif mampu meningkatkan minat serta pemahaman peserta didik secara lebih optimal—termasuk dalam mempelajari materi fiqih munakahat yang kaya nilai dan relevan bagi kehidupan mereka.</p>
+      <p>Kami menyadari bahwa e-modul ini masih jauh dari sempurna. Oleh karena itu, kami dengan rendah hati memohon maaf atas segala kekurangan yang ada dan membuka diri selebar-lebarnya terhadap kritik serta saran yang membangun demi perbaikan di masa mendatang.</p>
+      <p>Semoga e-modul ini bermanfaat bagi peserta didik, pendidik, dan siapa pun yang membacanya.</p>
+      <p style="margin-top:1.5rem; color: var(--color-text-secondary);">Medan, Juni 2026<br><em>Penyusun,</em><br><br>Najihah Suhailah &amp; Shofia Nur Rahmi</p>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(0)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Sampul</button>
+      <span class="page-num">Halaman 2</span>
+      <button class="btn-nav primary" onclick="goTo(2)">Daftar Isi <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 3: DAFTAR ISI -->
+  <div class="page" id="p2">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-list" aria-hidden="true"></i></div>
+      <div><div class="section-title">Daftar Isi</div><div class="section-sub">Navigasi materi e-modul</div></div>
+    </div>
+    <div class="toc-item" onclick="goTo(1)"><div class="toc-num">1</div> Prakata</div>
+    <div class="toc-item" onclick="goTo(3)"><div class="toc-num">2</div> Petunjuk Penggunaan E-Modul</div>
+    <div class="toc-item" onclick="goTo(4)"><div class="toc-num">3</div> Tujuan Pembelajaran</div>
+    <div class="toc-item" onclick="goTo(5)"><div class="toc-num">4</div> Materi 1 — Pengertian Pernikahan dalam Islam</div>
+    <div class="toc-item" onclick="goTo(6)"><div class="toc-num">5</div> Materi 2 — Dalil Al-Qur'an dan Hadis tentang Pernikahan</div>
+    <div class="toc-item" onclick="goTo(7)"><div class="toc-num">6</div> Materi 3 — Hukum Pernikahan dalam Islam</div>
+    <div class="toc-item" onclick="goTo(8)"><div class="toc-num">7</div> Materi 4 — Rukun dan Syarat Pernikahan</div>
+    <div class="toc-item" onclick="goTo(9)"><div class="toc-num">8</div> Materi 5 — Prosedur Pernikahan Islami</div>
+    <div class="toc-item" onclick="goTo(10)"><div class="toc-num">9</div> Materi 6 — Mahram dan Wanita yang Haram Dinikahi</div>
+    <div class="toc-item" onclick="goTo(11)"><div class="toc-num">10</div> Materi 7 — Walimatul 'Ursy (Resepsi Pernikahan)</div>
+    <div class="toc-item" onclick="goTo(12)"><div class="toc-num">11</div> Video Pembelajaran</div>
+    <div class="toc-item" onclick="goTo(13)"><div class="toc-num">12</div> Evaluasi / Kuis</div>
+    <div class="toc-item" onclick="goTo(14)"><div class="toc-num">13</div> Sumber Rujukan</div>
+    <div class="toc-item" onclick="goTo(15)"><div class="toc-num">14</div> Profil Penulis</div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(1)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 3</span>
+      <button class="btn-nav primary" onclick="goTo(3)">Petunjuk <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 4: PETUNJUK -->
+  <div class="page" id="p3">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-help-circle" aria-hidden="true"></i></div>
+      <div><div class="section-title">Petunjuk Penggunaan E-Modul</div><div class="section-sub">Panduan bagi siswa SMA</div></div>
+    </div>
+    <div class="prose" style="margin-bottom:1.5rem;"><p>Sebelum memulai, perhatikan petunjuk berikut agar kamu dapat menggunakan e-modul ini secara maksimal:</p></div>
+    <div class="petunjuk-item">
+      <div class="petunjuk-num">1</div>
+      <div class="prose"><p><strong>Baca secara berurutan.</strong> E-modul ini dirancang berjenjang—mulai dari pengertian, dalil, hingga evaluasi. Membaca dari awal akan membantumu membangun pemahaman yang kokoh.</p></div>
+    </div>
+    <div class="petunjuk-item">
+      <div class="petunjuk-num">2</div>
+      <div class="prose"><p><strong>Klik/ketuk setiap kartu materi.</strong> Beberapa konten tersembunyi di balik kartu interaktif. Ketuk kartu untuk membuka penjelasan lengkap.</p></div>
+    </div>
+    <div class="petunjuk-item">
+      <div class="petunjuk-num">3</div>
+      <div class="prose"><p><strong>Gunakan tombol navigasi.</strong> Tombol di bagian atas (nav bar) memudahkanmu berpindah antarbagian kapan saja. Tombol panah di bawah membawa ke halaman berikut atau sebelumnya.</p></div>
+    </div>
+    <div class="petunjuk-item">
+      <div class="petunjuk-num">4</div>
+      <div class="prose"><p><strong>Tonton video pembelajaran.</strong> Pada halaman Video tersedia tautan ke konten YouTube yang relevan. Tonton untuk memperdalam pemahaman secara audiovisual.</p></div>
+    </div>
+    <div class="petunjuk-item">
+      <div class="petunjuk-num">5</div>
+      <div class="prose"><p><strong>Kerjakan kuis dengan jujur.</strong> Kuis evaluasi terdiri dari 10 soal pilihan ganda. Kerjakan tanpa membuka materi terlebih dahulu agar hasilnya mencerminkan pemahamanmu yang sebenarnya.</p></div>
+    </div>
+    <div class="petunjuk-item">
+      <div class="petunjuk-num">6</div>
+      <div class="prose"><p><strong>Catat poin penting.</strong> Siapkan buku catatan untuk menuliskan istilah-istilah baru, ayat, hadis, atau hal yang menurutmu penting dari setiap materi.</p></div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(2)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 4</span>
+      <button class="btn-nav primary" onclick="goTo(4)">Tujuan <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 5: TUJUAN PEMBELAJARAN -->
+  <div class="page" id="p4">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-target" aria-hidden="true"></i></div>
+      <div><div class="section-title">Tujuan Pembelajaran</div><div class="section-sub">Capaian setelah mempelajari bab ini</div></div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">Setelah mempelajari bab ini, peserta didik diharapkan mampu:</div>
+    </div>
+    <div class="tp-item"><div class="tp-check"><i class="ti ti-check" aria-hidden="true"></i></div><div class="prose"><p>Menjelaskan pengertian pernikahan dalam Islam secara bahasa dan istilah.</p></div></div>
+    <div class="tp-item"><div class="tp-check"><i class="ti ti-check" aria-hidden="true"></i></div><div class="prose"><p>Menyebutkan dan memahami dalil Al-Qur'an dan hadis Nabi tentang anjuran menikah.</p></div></div>
+    <div class="tp-item"><div class="tp-check"><i class="ti ti-check" aria-hidden="true"></i></div><div class="prose"><p>Mengidentifikasi hukum pernikahan beserta kondisi yang melatarbelakanginya (wajib, sunnah, mubah, makruh, haram).</p></div></div>
+    <div class="tp-item"><div class="tp-check"><i class="ti ti-check" aria-hidden="true"></i></div><div class="prose"><p>Menyebutkan dan memahami rukun serta syarat sah pernikahan dalam Islam.</p></div></div>
+    <div class="tp-item"><div class="tp-check"><i class="ti ti-check" aria-hidden="true"></i></div><div class="prose"><p>Mendeskripsikan prosedur pelaksanaan pernikahan yang sesuai syariat Islam.</p></div></div>
+    <div class="tp-item"><div class="tp-check"><i class="ti ti-check" aria-hidden="true"></i></div><div class="prose"><p>Mengidentifikasi perempuan-perempuan yang haram untuk dinikahi (mahram).</p></div></div>
+    <div class="tp-item"><div class="tp-check"><i class="ti ti-check" aria-hidden="true"></i></div><div class="prose"><p>Menjelaskan hukum dan hikmah walimatul 'ursy sebagai ungkapan syukur atas pernikahan.</p></div></div>
+    <div class="tp-item"><div class="tp-check"><i class="ti ti-check" aria-hidden="true"></i></div><div class="prose"><p>Menerapkan nilai-nilai luhur pernikahan Islam dalam kehidupan sehari-hari sebagai bagian dari akhlak mulia.</p></div></div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(3)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 5</span>
+      <button class="btn-nav primary" onclick="goTo(5)">Mulai Materi <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 6: MATERI 1 - PENGERTIAN -->
+  <div class="page" id="p5">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-heart" aria-hidden="true"></i></div>
+      <div><div class="section-title">Materi 1 — Pengertian Pernikahan</div><div class="section-sub">Bahasa, istilah, dan tujuan</div></div>
+    </div>
+    <div class="prose">
+      <p>Pernikahan atau dalam bahasa Arab disebut <em>an-nikâh</em> (النكاح) memiliki makna secara bahasa yaitu <em>al-jam'u</em> (berkumpul) dan <em>al-wath'u</em> (persetubuhan). Adapun secara istilah, pernikahan adalah akad yang menghalalkan pergaulan dan membatasi hak serta kewajiban antara seorang laki-laki dan perempuan yang bukan mahram.</p>
+    </div>
+    <div class="topic-grid">
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num">01</div>
+        <div class="topic-title">Definisi Menurut Ulama</div>
+        <div class="topic-body">Menurut Imam Syafi'i, nikah adalah akad yang mengandung kebolehan bersetubuh dengan lafaz nikah atau tazwij. Menurut Hanafi, nikah adalah akad yang memberi hak kepemilikan untuk bersenang-senang secara sengaja. Intinya: nikah adalah ikatan suci yang dilandasi akad sahih.</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num">02</div>
+        <div class="topic-title">Tujuan Pernikahan</div>
+        <div class="topic-body">1) Membentuk keluarga sakinah, mawaddah, wa rahmah. 2) Meneruskan keturunan yang sah. 3) Menjaga kesucian diri dan menghindari perbuatan zina. 4) Mendapat pahala ibadah dari menjalankan sunnah Nabi. 5) Mewujudkan kerja sama dalam kehidupan bermasyarakat.</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num">03</div>
+        <div class="topic-title">Hikmah Pernikahan</div>
+        <div class="topic-body">Pernikahan memberikan ketenangan jiwa (sakinah), menumbuhkan kasih sayang (mawaddah), dan melahirkan rasa saling mengasihi (rahmah). Hikmah lainnya: menjaga nasab/keturunan, melindungi masyarakat dari kerusakan moral, serta mendekatkan dua keluarga dalam ikatan persaudaraan.</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num">04</div>
+        <div class="topic-title">Landasan Hukum Positif</div>
+        <div class="topic-body">Di Indonesia, pernikahan diatur dalam UU No. 1 Tahun 1974 tentang Perkawinan dan Kompilasi Hukum Islam (KHI). Pernikahan yang sah secara negara harus dicatatkan di Kantor Urusan Agama (KUA) bagi pasangan muslim.</div>
+      </div>
+    </div>
+    <div class="info-card" style="margin-top:1rem;">
+      <div class="info-card-title">💡 Ketuk setiap kartu untuk membaca penjelasannya</div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(4)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 6</span>
+      <button class="btn-nav primary" onclick="goTo(6)">Dalil <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 7: DALIL -->
+  <div class="page" id="p6">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-book" aria-hidden="true"></i></div>
+      <div><div class="section-title">Materi 2 — Dalil tentang Pernikahan</div><div class="section-sub">Al-Qur'an dan Hadis Nabi</div></div>
+    </div>
+    <div class="info-card-title" style="margin-bottom:0.75rem; font-size:13px; color:#0F6E56; font-weight:500; text-transform:uppercase; letter-spacing:0.5px;">Dalil Al-Qur'an</div>
+    <div class="ayat-box">
+      <div class="ayat-arabic">وَأَنكِحُوا الْأَيَامَىٰ مِنكُمْ وَالصَّالِحِينَ مِنْ عِبَادِكُمْ وَإِمَائِكُمْ</div>
+      <div class="ayat-latin">"Wa ankihul-ayâmâ minkum waş-şâliḥîna min 'ibâdikum wa imâ'ikum..."</div>
+      <div class="ayat-terjemah">"Dan nikahkanlah orang-orang yang masih membujang di antara kamu, dan juga orang-orang yang layak (menikah) dari hamba-hamba sahayamu yang laki-laki dan perempuan..."</div>
+      <div class="ayat-source">QS. An-Nûr (24): 32</div>
+    </div>
+    <div class="ayat-box">
+      <div class="ayat-arabic">وَمِنْ آيَاتِهِ أَنْ خَلَقَ لَكُم مِّنْ أَنفُسِكُمْ أَزْوَاجًا لِّتَسْكُنُوا إِلَيْهَا</div>
+      <div class="ayat-latin">"Wa min âyâtihî an khalaqa lakum min anfusikum azwâjal litaskunû ilayhâ..."</div>
+      <div class="ayat-terjemah">"Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya..."</div>
+      <div class="ayat-source">QS. Ar-Rûm (30): 21</div>
+    </div>
+    <div class="info-card-title" style="margin: 1.5rem 0 0.75rem; font-size:13px; color:#0F6E56; font-weight:500; text-transform:uppercase; letter-spacing:0.5px;">Dalil Hadis</div>
+    <div class="info-card">
+      <div class="ayat-arabic" style="font-size:16px;">يَا مَعْشَرَ الشَّبَابِ مَنِ اسْتَطَاعَ مِنْكُمُ الْبَاءَةَ فَلْيَتَزَوَّجْ</div>
+      <div class="ayat-latin" style="margin-top:8px;">"Yâ ma'syaras-syabâbi, manistathâ'a minkumul-bâ'ata falyatazawwaj..."</div>
+      <div class="ayat-terjemah" style="margin-top:8px;">"Wahai para pemuda! Barang siapa di antara kalian mampu menikah, maka menikahlah. Sesungguhnya menikah itu lebih bisa menundukkan pandangan dan lebih bisa menjaga kemaluan."</div>
+      <div class="ayat-source">HR. Bukhari & Muslim</div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(5)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 7</span>
+      <button class="btn-nav primary" onclick="goTo(7)">Hukum <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 8: HUKUM -->
+  <div class="page" id="p7">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-scale" aria-hidden="true"></i></div>
+      <div><div class="section-title">Materi 3 — Hukum Pernikahan</div><div class="section-sub">Lima hukum pernikahan dalam Islam</div></div>
+    </div>
+    <div class="prose" style="margin-bottom:1.5rem;"><p>Hukum asal pernikahan dalam Islam adalah <em>mubah</em> (boleh). Namun hukum ini dapat berubah menjadi wajib, sunnah, makruh, bahkan haram tergantung kondisi dan keadaan seseorang.</p></div>
+    <div class="topic-grid">
+      <div class="topic-card" onclick="toggleTopic(this)" style="border-top: 3px solid #E24B4A;">
+        <div class="topic-num" style="color:#E24B4A;">WAJIB</div>
+        <div class="topic-title">Hukum Wajib</div>
+        <div class="topic-body" style="color:#501313;">Wajib menikah bagi orang yang sudah mampu secara lahir batin, memiliki syahwat kuat yang dikhawatirkan akan terjerumus dalam zina jika tidak segera menikah, dan sudah memiliki kemampuan finansial.</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)" style="border-top: 3px solid #1D9E75;">
+        <div class="topic-num" style="color:#1D9E75;">SUNNAH</div>
+        <div class="topic-title">Hukum Sunnah</div>
+        <div class="topic-body" style="color:#04342C;">Sunnah menikah bagi orang yang memiliki keinginan untuk menikah dan mampu secara finansial, tetapi tidak khawatir terjerumus dalam zina. Ini adalah hukum asal yang paling sering berlaku bagi kebanyakan orang.</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)" style="border-top: 3px solid #888780;">
+        <div class="topic-num" style="color:#5F5E5A;">MUBAH</div>
+        <div class="topic-title">Hukum Mubah</div>
+        <div class="topic-body">Mubah bagi orang yang tidak memiliki dorongan kuat untuk menikah—tidak khawatir berbuat zina—dan juga tidak memiliki kemampuan finansial yang cukup, sehingga menikah atau tidak sama saja.</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)" style="border-top: 3px solid #EF9F27;">
+        <div class="topic-num" style="color:#854F0B;">MAKRUH</div>
+        <div class="topic-title">Hukum Makruh</div>
+        <div class="topic-body" style="color:#412402;">Makruh menikah bagi orang yang tidak mampu memenuhi nafkah lahir dan batin calon istrinya, meskipun tidak ada kekhawatiran berbuat zina. Pernikahan yang ditopang ketidakmampuan ini bisa menimbulkan kemudaratan.</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)" style="border-top: 3px solid #E24B4A; grid-column: span 2;">
+        <div class="topic-num" style="color:#E24B4A;">HARAM</div>
+        <div class="topic-title">Hukum Haram</div>
+        <div class="topic-body" style="color:#501313;">Haram menikah jika: (1) menikahi perempuan yang masih berstatus istri orang lain, (2) menikahi mahram (perempuan yang haram dinikahi), (3) menikah dengan niat menyakiti pasangan, (4) menikahi perempuan musyrikah atau laki-laki kafir (bagi muslimah).</div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(6)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 8</span>
+      <button class="btn-nav primary" onclick="goTo(8)">Rukun & Syarat <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 9: RUKUN & SYARAT -->
+  <div class="page" id="p8">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-checkbox" aria-hidden="true"></i></div>
+      <div><div class="section-title">Materi 4 — Rukun & Syarat Pernikahan</div><div class="section-sub">Ketentuan sahnya sebuah pernikahan</div></div>
+    </div>
+    <table class="rukun-table">
+      <thead>
+        <tr><th>No.</th><th>Rukun Nikah</th><th>Syarat</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>Calon Suami</strong></td>
+          <td>Muslim, laki-laki, bukan mahram calon istri, tidak dalam kondisi ihram, tidak dipaksa, identitas jelas.</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Calon Istri</strong></td>
+          <td>Muslimah (atau Ahli Kitab bagi laki-laki muslim), perempuan, bukan mahram calon suami, tidak sedang dalam masa iddah, tidak dalam ihram.</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Wali Nikah</strong></td>
+          <td>Muslim, laki-laki, baligh, berakal, adil. Urutan: ayah → kakek → saudara laki-laki kandung → paman, dst. Jika tidak ada, dapat menggunakan wali hakim.</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Dua Saksi</strong></td>
+          <td>Dua orang laki-laki muslim, baligh, berakal, adil, dapat mendengar dan memahami ucapan akad, tidak dalam ihram.</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>Ijab dan Kabul</strong></td>
+          <td>Ijab diucapkan wali; kabul diucapkan calon suami. Harus dalam satu majelis, jelas, tidak bersyarat, dan tidak ada jeda yang terlalu panjang di antara keduanya.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="info-card">
+      <div class="info-card-title">Mahar (Mas Kawin)</div>
+      <div class="prose"><p>Mahar adalah pemberian wajib dari suami kepada istri sebagai tanda kesungguhan. Bentuknya dapat berupa uang, emas, atau benda berharga lain—bahkan hafalan Al-Qur'an. Tidak ada nilai minimum yang ditetapkan, yang penting disepakati dan mampu dipenuhi.</p></div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(7)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 9</span>
+      <button class="btn-nav primary" onclick="goTo(9)">Prosedur <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 10: PROSEDUR -->
+  <div class="page" id="p9">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-route" aria-hidden="true"></i></div>
+      <div><div class="section-title">Materi 5 — Prosedur Pernikahan Islami</div><div class="section-sub">Tahapan dari ta'aruf hingga akad nikah</div></div>
+    </div>
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-line"><div class="step-dot">1</div><div class="step-connector"></div></div>
+        <div class="step-content"><div class="step-label">Ta'aruf (Perkenalan)</div><div class="step-desc">Proses saling mengenal antara calon suami dan istri dengan cara yang syar'i—didampingi mahram dan tidak berduaan (khalwat). Tujuannya menilai kecocokan dalam agama, akhlak, dan karakter.</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-line"><div class="step-dot">2</div><div class="step-connector"></div></div>
+        <div class="step-content"><div class="step-label">Khitbah (Lamaran)</div><div class="step-desc">Pihak laki-laki mengajukan lamaran resmi kepada pihak perempuan. Sunnah disampaikan langsung kepada wali perempuan. Selama masa khitbah, keduanya belum halal bagi satu sama lain.</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-line"><div class="step-dot">3</div><div class="step-connector"></div></div>
+        <div class="step-content"><div class="step-label">Pendaftaran ke KUA</div><div class="step-desc">Pasangan mendaftarkan rencana pernikahan ke Kantor Urusan Agama (KUA) sekurang-kurangnya 10 hari kerja sebelum akad. Menyerahkan dokumen yang diperlukan: KTP, KK, surat keterangan belum menikah, dll.</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-line"><div class="step-dot">4</div><div class="step-connector"></div></div>
+        <div class="step-content"><div class="step-label">Akad Nikah</div><div class="step-desc">Inti dari pernikahan. Wali mengucapkan ijab, calon suami mengucapkan kabul. Disaksikan dua saksi, penghulu, dan keluarga. Setelah akad, suami istri telah halal satu sama lain.</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-line"><div class="step-dot">5</div></div>
+        <div class="step-content"><div class="step-label">Walimatul 'Ursy</div><div class="step-desc">Resepsi pernikahan sebagai pengumuman kepada masyarakat. Hukumnya sunnah muakkad. Hendaknya mengundang kaum fakir miskin dan dilaksanakan dengan sederhana namun meriah.</div></div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(8)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 10</span>
+      <button class="btn-nav primary" onclick="goTo(10)">Mahram <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 11: MAHRAM -->
+  <div class="page" id="p10">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-user-x" aria-hidden="true"></i></div>
+      <div><div class="section-title">Materi 6 — Mahram & Wanita yang Haram Dinikahi</div><div class="section-sub">Berdasarkan QS. An-Nisâ' (4): 22–24</div></div>
+    </div>
+    <div class="prose" style="margin-bottom:1.5rem;"><p>Mahram adalah orang yang haram dinikahi selamanya atau untuk sementara waktu. Islam menetapkan ini untuk menjaga keharmonisan hubungan keluarga dan menghindari mudarat sosial.</p></div>
+    <div class="topic-grid">
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num" style="color:#E24B4A;">Haram Selamanya</div>
+        <div class="topic-title">Karena Nasab (Keturunan)</div>
+        <div class="topic-body" style="color:#501313;">Ibu, nenek (ke atas), anak perempuan, cucu perempuan (ke bawah), saudara perempuan kandung/sebapak/seibu, bibi dari pihak ayah (saudara perempuan ayah), bibi dari pihak ibu (saudara perempuan ibu).</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num" style="color:#E24B4A;">Haram Selamanya</div>
+        <div class="topic-title">Karena Pernikahan (Mushaharah)</div>
+        <div class="topic-body" style="color:#501313;">Ibu mertua, anak tiri (yang ibunya telah digauli), istri ayah/kakek, menantu perempuan (istri anak kandung).</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num" style="color:#E24B4A;">Haram Selamanya</div>
+        <div class="topic-title">Karena Persusuan (Radha'ah)</div>
+        <div class="topic-body" style="color:#501313;">Ibu susuan dan semua perempuan yang mahram karena nasab berlaku juga karena persusuan—sesuai hadis: "Diharamkan karena persusuan apa yang diharamkan karena nasab."</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num" style="color:#BA7517;">Haram Sementara</div>
+        <div class="topic-title">Haram untuk Sementara</div>
+        <div class="topic-body" style="color:#412402;">Saudara perempuan istri (jika masih terikat pernikahan), perempuan yang masih dalam masa iddah, perempuan pezina (sebelum bertobat), perempuan musyrikah, menikahi lebih dari 4 istri sekaligus.</div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(9)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 11</span>
+      <button class="btn-nav primary" onclick="goTo(11)">Walimah <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 12: WALIMAH -->
+  <div class="page" id="p11">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-confetti" aria-hidden="true"></i></div>
+      <div><div class="section-title">Materi 7 — Walimatul 'Ursy</div><div class="section-sub">Resepsi pernikahan dalam Islam</div></div>
+    </div>
+    <div class="ayat-box">
+      <div class="ayat-arabic" style="font-size:16px;">أَوْلِمْ وَلَوْ بِشَاةٍ</div>
+      <div class="ayat-latin">"Awlim wa law bisyâtin..."</div>
+      <div class="ayat-terjemah">"Adakanlah walimah meskipun hanya dengan seekor kambing."</div>
+      <div class="ayat-source">HR. Bukhari & Muslim</div>
+    </div>
+    <div class="prose">
+      <p>Walimatul 'ursy adalah pesta atau jamuan makan sebagai perayaan pernikahan. Hukumnya <strong>sunnah muakkad</strong> (sunnah yang sangat dianjurkan). Tujuannya adalah mengumumkan pernikahan kepada masyarakat agar tidak menimbulkan fitnah.</p>
+    </div>
+    <div class="topic-grid" style="margin-top:1rem;">
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num">Adab</div>
+        <div class="topic-title">Adab Mengadakan Walimah</div>
+        <div class="topic-body">1) Dilaksanakan setelah akad nikah, paling baik hari pertama. 2) Tidak berlebihan dan tidak memboroskan harta. 3) Mengundang fakir miskin bersama yang mampu. 4) Tidak memaksa tamu membawa hadiah. 5) Menghindari hiburan yang haram (minuman keras, musik berlebihan, dll).</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num">Undangan</div>
+        <div class="topic-title">Hukum Menghadiri Undangan</div>
+        <div class="topic-body">Menghadiri undangan walimah hukumnya wajib bagi yang diundang, selama tidak ada kemaksiatan di tempat walimah. Sabda Nabi: "Barang siapa tidak menghadiri undangan walimah, sungguh ia telah durhaka kepada Allah dan Rasul-Nya." (HR. Muslim)</div>
+      </div>
+      <div class="topic-card" onclick="toggleTopic(this)">
+        <div class="topic-num">Hikmah</div>
+        <div class="topic-title">Hikmah Walimatul 'Ursy</div>
+        <div class="topic-body">1) Mengumumkan secara resmi pernikahan kepada masyarakat. 2) Ungkapan syukur atas nikmat pernikahan. 3) Mempererat tali silaturahmi antar keluarga dan sahabat. 4) Mendoakan pasangan baru agar rumah tangga diberkahi Allah Swt.</div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(10)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 12</span>
+      <button class="btn-nav primary" onclick="goTo(12)">Video <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 13: VIDEO -->
+  <div class="page" id="p12">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-player-play" aria-hidden="true"></i></div>
+      <div><div class="section-title">Video Pembelajaran</div><div class="section-sub">Perkuat pemahaman melalui tontonan</div></div>
+    </div>
+    <div class="prose" style="margin-bottom:1.5rem;"><p>Tonton video-video berikut untuk memperdalam pemahaman tentang pernikahan dalam Islam. Klik pada kartu untuk membuka tautan video.</p></div>
+    <div class="video-card" onclick="openLink('https://www.youtube.com/watch?v=y-iR9qQijgY')">
+      <div class="video-thumb" style="background:#085041;">
+        <i class="ti ti-player-play-filled" style="font-size:48px; color:#9FE1CB;" aria-hidden="true"></i>
+      </div>
+      <div class="video-info">
+        <div class="video-title">Fiqih Munakahat — Pernikahan dalam Islam Lengkap</div>
+        <div class="video-src"><i class="ti ti-brand-youtube" aria-hidden="true"></i> YouTube · Buya Yahya Official</div>
+      </div>
+    </div>
+    <div class="video-card" onclick="openLink('https://www.youtube.com/watch?v=7FBRhZ2C0_c')">
+      <div class="video-thumb" style="background:#0F6E56;">
+        <i class="ti ti-player-play-filled" style="font-size:48px; color:#9FE1CB;" aria-hidden="true"></i>
+      </div>
+      <div class="video-info">
+        <div class="video-title">Rukun & Syarat Nikah yang Sah dalam Islam</div>
+        <div class="video-src"><i class="ti ti-brand-youtube" aria-hidden="true"></i> YouTube · Ustadz Adi Hidayat Official</div>
+      </div>
+    </div>
+    <div class="video-card" onclick="openLink('https://www.youtube.com/watch?v=iMJPLVqCRaQ')">
+      <div class="video-thumb" style="background:#04342C;">
+        <i class="ti ti-player-play-filled" style="font-size:48px; color:#9FE1CB;" aria-hidden="true"></i>
+      </div>
+      <div class="video-info">
+        <div class="video-title">Prosedur Nikah di KUA — Langkah demi Langkah</div>
+        <div class="video-src"><i class="ti ti-brand-youtube" aria-hidden="true"></i> YouTube · Kemenag RI</div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(11)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 13</span>
+      <button class="btn-nav primary" onclick="goTo(13)">Evaluasi <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 14: EVALUASI / KUIS -->
+  <div class="page" id="p13">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-pencil" aria-hidden="true"></i></div>
+      <div><div class="section-title">Evaluasi Materi</div><div class="section-sub">Kuis 10 soal pilihan ganda</div></div>
+    </div>
+    <div class="quiz-wrap">
+      <div class="quiz-progress" id="quizProg"></div>
+      <div id="quizBox"></div>
+      <div class="score-card" id="scoreCard">
+        <div class="score-num" id="scoreNum"></div>
+        <div class="score-label" id="scoreLabel"></div>
+        <div style="margin-top:1.5rem;">
+          <button class="btn-nav" onclick="resetQuiz()" style="margin:auto;">Ulangi Kuis</button>
+        </div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(12)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 14</span>
+      <button class="btn-nav primary" onclick="goTo(14)">Rujukan <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 15: RUJUKAN -->
+  <div class="page" id="p14">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-books" aria-hidden="true"></i></div>
+      <div><div class="section-title">Sumber Rujukan</div><div class="section-sub">Referensi utama dan pendukung</div></div>
+    </div>
+    <div class="ref-item">Al-Qur'an Al-Karim — Surah An-Nisâ' (4): 22–24; An-Nûr (24): 32; Ar-Rûm (30): 21</div>
+    <div class="ref-item">Kementerian Agama RI. (2022). <em>Pendidikan Agama Islam dan Budi Pekerti untuk SMA Kelas XI</em>. Jakarta: Kemendikbudristek.</div>
+    <div class="ref-item">Sabiq, Sayyid. (2006). <em>Fiqh al-Sunnah, Jilid 2</em>. Beirut: Dar al-Kitab al-'Arabi.</div>
+    <div class="ref-item">Al-Jaziri, Abdurrahman. (2003). <em>Al-Fiqh 'alâ al-Madzâhib al-Arba'ah</em>. Kairo: Dar al-Hadis.</div>
+    <div class="ref-item">Undang-Undang Republik Indonesia Nomor 1 Tahun 1974 tentang Perkawinan.</div>
+    <div class="ref-item">Inpres No. 1 Tahun 1991 tentang Kompilasi Hukum Islam (KHI).</div>
+    <div class="ref-item">Buya Yahya Official. <em>Fiqih Munakahat Lengkap</em>. YouTube. <a href="https://www.youtube.com/watch?v=y-iR9qQijgY" style="color:#0F6E56;">youtube.com/watch?v=y-iR9qQijgY</a></div>
+    <div class="ref-item">Ustadz Adi Hidayat Official. <em>Rukun dan Syarat Nikah</em>. YouTube. <a href="https://www.youtube.com/watch?v=7FBRhZ2C0_c" style="color:#0F6E56;">youtube.com/watch?v=7FBRhZ2C0_c</a></div>
+    <div class="ref-item">Kemenag RI. <em>Prosedur Nikah di KUA</em>. YouTube. <a href="https://www.youtube.com/watch?v=iMJPLVqCRaQ" style="color:#0F6E56;">youtube.com/watch?v=iMJPLVqCRaQ</a></div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(13)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 15</span>
+      <button class="btn-nav primary" onclick="goTo(15)">Profil Penulis <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+  <!-- HALAMAN 16: PROFIL -->
+  <div class="page" id="p15">
+    <div class="section-header">
+      <div class="section-icon"><i class="ti ti-user-circle" aria-hidden="true"></i></div>
+      <div><div class="section-title">Profil Penulis</div><div class="section-sub">Mengenal para penyusun e-modul</div></div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-avatar">NS</div>
+      <div>
+        <div class="profile-name">Najihah Suhailah</div>
+        <div class="profile-nim">NIM 0301241013 · Kelompok 11, PAI 5 Semester IV</div>
+        <div class="profile-bio">Najihah Suhailah lahir dan besar dengan kecintaan yang mendalam terhadap ilmu agama Islam. Saat ini ia menempuh studi di Program Studi Pendidikan Agama Islam, Fakultas Ilmu Tarbiyah dan Keguruan, UIN Sumatera Utara Medan. Ia memiliki minat besar dalam bidang pengembangan media pembelajaran berbasis teknologi dan percaya bahwa seorang pendidik masa depan harus mampu menyajikan materi agama secara menarik, kontekstual, dan menyenangkan bagi peserta didik generasi Z. Ketertarikannya pada fiqih munakahat mendorongnya memilih tema pernikahan dalam Islam sebagai bahan e-modul ini, dengan harapan dapat memberikan pemahaman yang benar dan komprehensif kepada generasi muda tentang hakikat pernikahan dalam Islam.</div>
+      </div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-avatar" style="background:#0F6E56;">SR</div>
+      <div>
+        <div class="profile-name">Shofia Nur Rahmi</div>
+        <div class="profile-nim">NIM 0301243155 · Kelompok 11, PAI 5 Semester IV</div>
+        <div class="profile-bio">Shofia Nur Rahmi adalah mahasiswi Program Studi Pendidikan Agama Islam di UIN Sumatera Utara Medan yang dikenal aktif, kreatif, dan penuh semangat dalam proses pembelajaran. Ia memiliki kepedulian tinggi terhadap kualitas pendidikan Islam di Indonesia dan berkomitmen untuk kelak menjadi guru yang tidak hanya mentransfer ilmu, tetapi juga menjadi inspirasi bagi peserta didiknya. Dalam menyusun e-modul ini, ia menuangkan ide-ide segar dan kreatif agar tampilan dan konten materi mudah dipahami oleh siswa SMA. Shofia berharap e-modul Pernikahan dalam Islam ini dapat menjadi salah satu kontribusi kecil yang bermakna dalam dunia pendidikan agama Islam di Indonesia.</div>
+      </div>
+    </div>
+    <div style="margin-top:1.5rem; padding:1rem; background:#E1F5EE; border-radius:var(--border-radius-lg); text-align:center;">
+      <div style="font-size:13px; color:#085041;">Program Studi Pendidikan Agama Islam · Fakultas Ilmu Tarbiyah dan Keguruan<br>UIN Sumatera Utara Medan · Tahun 2026</div>
+    </div>
+    <div class="page-footer">
+      <button class="btn-nav" onclick="goTo(14)"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali</button>
+      <span class="page-num">Halaman 16</span>
+      <button class="btn-nav primary" onclick="goTo(0)"><i class="ti ti-home" aria-hidden="true"></i> Ke Sampul</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const pages = document.querySelectorAll('.page');
+const navBtns = document.querySelectorAll('.nav-btn');
+let cur = 0;
+
+function goTo(n) {
+  pages[cur].classList.remove('active');
+  navBtns[cur].classList.remove('active');
+  cur = n;
+  pages[cur].classList.add('active');
+  navBtns[cur].classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function toggleTopic(el) {
+  const wasExpanded = el.classList.contains('expanded');
+  el.closest('.topic-grid').querySelectorAll('.topic-card').forEach(c => c.classList.remove('expanded'));
+  if (!wasExpanded) el.classList.add('expanded');
+}
+
+const questions = [
+  { q: "Secara bahasa, kata 'an-nikah' dalam bahasa Arab memiliki arti...", opts: ["Perpisahan dan keterputusan", "Berkumpul dan persetubuhan", "Perjanjian dan kontrak bisnis", "Kebahagiaan dan kesenangan"], ans: 1 },
+  { q: "Berikut ini yang termasuk rukun nikah dalam Islam adalah...", opts: ["Mahar, wali, dan dua saksi saja", "Calon suami, calon istri, wali, dua saksi, dan ijab kabul", "Calon suami, calon istri, dan penghulu", "Ijab kabul, mahar, dan resepsi pernikahan"], ans: 1 },
+  { q: "Hukum pernikahan bagi seseorang yang memiliki syahwat kuat dan dikhawatirkan akan berzina jika tidak segera menikah adalah...", opts: ["Mubah", "Sunnah", "Wajib", "Makruh"], ans: 2 },
+  { q: "Ayat Al-Qur'an yang berbunyi 'wa min âyâtihî an khalaqa lakum min anfusikum azwâjan litaskunû ilayhâ' terdapat dalam surah...", opts: ["QS. An-Nisâ' (4): 22", "QS. An-Nûr (24): 32", "QS. Ar-Rûm (30): 21", "QS. Al-Baqarah (2): 187"], ans: 2 },
+  { q: "Urutan wali nikah yang paling berhak (wali nasab) adalah...", opts: ["Kakek → Ayah → Saudara laki-laki → Paman", "Ayah → Kakek → Saudara laki-laki kandung → Paman", "Saudara laki-laki → Ayah → Kakek → Paman", "Paman → Kakek → Ayah → Saudara laki-laki"], ans: 1 },
+  { q: "Walimatul 'ursy adalah istilah untuk...", opts: ["Prosesi lamaran pernikahan", "Akad nikah antara suami dan istri", "Resepsi atau pesta pernikahan dalam Islam", "Masa iddah setelah perceraian"], ans: 2 },
+  { q: "Pernikahan dengan ibu mertua hukumnya haram karena termasuk mahram...", opts: ["Mahram karena nasab (keturunan)", "Mahram karena persusuan (radha'ah)", "Mahram karena pernikahan (mushaharah)", "Mahram karena hubungan persahabatan"], ans: 2 },
+  { q: "Proses saling mengenal antara calon suami dan istri secara Islami, yang dilakukan dengan didampingi mahram dan tidak berduaan (khalwat), disebut...", opts: ["Khitbah", "Ta'aruf", "Walimah", "Ijab kabul"], ans: 1 },
+  { q: "Menurut hadis riwayat Bukhari & Muslim, jika ada seseorang yang mengundang kita ke walimatul 'ursy, maka hukum menghadirinya adalah...", opts: ["Sunnah", "Mubah", "Makruh", "Wajib"], ans: 3 },
+  { q: "Di Indonesia, pernikahan yang sah secara negara bagi pasangan muslim harus dicatatkan di...", opts: ["Pengadilan Agama (PA)", "Kantor Urusan Agama (KUA)", "Kementerian Agama (Kemenag)", "Kelurahan setempat"], ans: 1 }
+];
+
+let qIdx = 0, score = 0, answered = [];
+
+function renderQuiz() {
+  const prog = document.getElementById('quizProg');
+  prog.innerHTML = questions.map((_, i) => {
+    let cls = 'prog-dot';
+    if (i === qIdx) cls += ' current';
+    else if (answered[i] === true) cls += ' done-ok';
+    else if (answered[i] === false) cls += ' done-no';
+    return '<div class="' + cls + '"></div>';
+  }).join('');
+
+  if (qIdx >= questions.length) {
+    document.getElementById('quizBox').innerHTML = '';
+    const sc = document.getElementById('scoreCard');
+    sc.style.display = 'block';
+    const pct = Math.round((score / questions.length) * 100);
+    document.getElementById('scoreNum').textContent = score + '/' + questions.length;
+    let msg = pct >= 80 ? '🎉 Luar biasa! Pemahaman kamu sangat baik.' : pct >= 60 ? '👍 Bagus! Tetap semangat belajar.' : '📚 Ayo ulangi materi dan coba lagi!';
+    document.getElementById('scoreLabel').textContent = msg;
+    return;
+  }
+
+  const q = questions[qIdx];
+  document.getElementById('quizBox').innerHTML = `
+    <div class="quiz-q">Soal ${qIdx + 1} dari ${questions.length}<br><br>${q.q}</div>
+    <div class="quiz-opts">
+      ${q.opts.map((o, i) => `<button class="quiz-opt" onclick="answer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="qfb"></div>
+    <div class="quiz-nav" id="qnav" style="display:none;">
+      <button class="btn-nav primary" onclick="nextQ()">${qIdx < questions.length - 1 ? 'Soal Berikutnya →' : 'Lihat Hasil'}</button>
+    </div>
+  `;
+}
+
+function answer(i) {
+  const q = questions[qIdx];
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+  const correct = i === q.ans;
+  opts[i].classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) opts[q.ans].classList.add('correct');
+  answered[qIdx] = correct;
+  if (correct) score++;
+  const fb = document.getElementById('qfb');
+  fb.className = 'quiz-feedback show ' + (correct ? 'ok' : 'no');
+  fb.textContent = correct ? '✓ Benar! ' + (q.opts[q.ans]) : '✗ Kurang tepat. Jawaban yang benar: ' + q.opts[q.ans];
+  document.getElementById('qnav').style.display = 'flex';
+}
+
+function nextQ() { qIdx++; renderQuiz(); }
+
+function resetQuiz() {
+  qIdx = 0; score = 0; answered = [];
+  document.getElementById('scoreCard').style.display = 'none';
+  renderQuiz();
+}
+
+renderQuiz();
+</script>
